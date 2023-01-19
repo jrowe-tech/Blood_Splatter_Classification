@@ -1,0 +1,13 @@
+imageio==2.24.0
+MyQR==2.3.1
+netaddr==0.8.0
+netifaces==0.11.0
+nptyping==2.4.1
+numpy==1.24.1
+opencv-contrib-python==4.7.0.68
+opencv-python==4.7.0.68
+Pillow==9.4.0
+pyzmq==24.0.1
+robomaster==0.1.1.68
+typing_extensions==4.4.0
+zmq==0.0.0
