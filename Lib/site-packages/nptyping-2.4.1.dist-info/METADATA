@@ -1,0 +1,222 @@
+Metadata-Version: 2.1
+Name: nptyping
+Version: 2.4.1
+Summary: Type hints for NumPy.
+Home-page: https://github.com/ramonhagenaars/nptyping
+Author: Ramon Hagenaars
+Author-email: ramon.hagenaars@gmail.com
+License: MIT
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: typing-extensions (<5.0.0,>=4.0.0) ; python_version < "3.10"
+Requires-Dist: numpy (==1.21.5) ; python_version < "3.8"
+Requires-Dist: numpy (<2.0.0,>=1.20.0) ; python_version >= "3.8"
+Provides-Extra: build
+Requires-Dist: invoke (>=1.6.0) ; extra == 'build'
+Requires-Dist: pip-tools (>=6.5.0) ; extra == 'build'
+Provides-Extra: complete
+Requires-Dist: pandas ; extra == 'complete'
+Requires-Dist: pandas-stubs-fork ; (python_version >= "3.8") and extra == 'complete'
+Provides-Extra: dev
+Requires-Dist: invoke (>=1.6.0) ; extra == 'dev'
+Requires-Dist: pip-tools (>=6.5.0) ; extra == 'dev'
+Requires-Dist: autoflake ; extra == 'dev'
+Requires-Dist: black ; extra == 'dev'
+Requires-Dist: coverage ; extra == 'dev'
+Requires-Dist: codecov (>=2.1.0) ; extra == 'dev'
+Requires-Dist: feedparser ; extra == 'dev'
+Requires-Dist: isort ; extra == 'dev'
+Requires-Dist: mypy ; extra == 'dev'
+Requires-Dist: pylint ; extra == 'dev'
+Requires-Dist: pyright ; extra == 'dev'
+Requires-Dist: setuptools ; extra == 'dev'
+Requires-Dist: typeguard ; extra == 'dev'
+Requires-Dist: wheel ; extra == 'dev'
+Requires-Dist: pandas ; extra == 'dev'
+Requires-Dist: beartype (<0.10.0) ; (python_version < "3.10") and extra == 'dev'
+Requires-Dist: beartype (>=0.10.0) ; (python_version >= "3.10") and extra == 'dev'
+Requires-Dist: pandas-stubs-fork ; (python_version >= "3.8") and extra == 'dev'
+Provides-Extra: pandas
+Requires-Dist: pandas ; extra == 'pandas'
+Requires-Dist: pandas-stubs-fork ; (python_version >= "3.8") and extra == 'pandas'
+Provides-Extra: qa
+Requires-Dist: autoflake ; extra == 'qa'
+Requires-Dist: black ; extra == 'qa'
+Requires-Dist: coverage ; extra == 'qa'
+Requires-Dist: codecov (>=2.1.0) ; extra == 'qa'
+Requires-Dist: feedparser ; extra == 'qa'
+Requires-Dist: isort ; extra == 'qa'
+Requires-Dist: mypy ; extra == 'qa'
+Requires-Dist: pylint ; extra == 'qa'
+Requires-Dist: pyright ; extra == 'qa'
+Requires-Dist: setuptools ; extra == 'qa'
+Requires-Dist: typeguard ; extra == 'qa'
+Requires-Dist: wheel ; extra == 'qa'
+Requires-Dist: beartype (<0.10.0) ; (python_version < "3.10") and extra == 'qa'
+Requires-Dist: beartype (>=0.10.0) ; (python_version >= "3.10") and extra == 'qa'
+
+[![PyPI version](https://img.shields.io/pypi/pyversions/nptyping.svg)](https://img.shields.io/pypi/pyversions/nptyping.svg)
+[![Downloads](https://pepy.tech/badge/nptyping/month)](https://pepy.tech/project/nptyping)
+[![PyPI version](https://badge.fury.io/py/nptyping.svg)](https://badge.fury.io/py/nptyping)
+[![codecov](https://codecov.io/gh/ramonhagenaars/nptyping/branch/master/graph/badge.svg)](https://codecov.io/gh/ramonhagenaars/nptyping)
+[![Code style](https://img.shields.io/badge/code%20style-black-black)](https://img.shields.io/badge/code%20style-black-black)
+
+
+<p align='center'>
+  <a href='https://https://pypi.org/project/nptyping/'>
+    <img src='https://github.com/ramonhagenaars/nptyping/raw/master/resources/logo.png' />
+  </a> 
+</p>
+
+💡 *Type hints for `NumPy`* <br/>
+💡 *Type hints for `pandas.DataFrame`* <br/>
+💡 *Extensive dynamic type checks for dtypes shapes and structures* <br/>
+
+Example of a hinted `numpy.ndarray`:
+
+```python
+>>> from nptyping import NDArray, Int, Shape
+
+>>> arr: NDArray[Shape["2, 2"], Int]
+
+```
+
+Example of a hinted `pandas.DataFrame`:
+
+```python
+>>> from nptyping import DataFrame, Structure as S
+
+>>> df: DataFrame[S["name: Str, x: Float, y: Float"]]
+
+```
+⚠️`pandas.DataFrame` is not yet supported on Python 3.11.
+
+### Installation
+
+| Command                          | Description                                               |
+|:---------------------------------|-----------------------------------------------------------|
+| `pip install nptyping`           | Install the basics                                        |
+| `pip install nptyping[pandas]`   | Install with pandas extension (⚠️Python 3.10 or lower)  |
+| `pip install nptyping[complete]` | Install with all extensions                               |
+
+### Instance checking
+
+Example of instance checking:
+```python
+>>> import numpy as np
+
+>>> isinstance(np.array([[1, 2], [3, 4]]), NDArray[Shape["2, 2"], Int])
+True
+
+>>> isinstance(np.array([[1., 2.], [3., 4.]]), NDArray[Shape["2, 2"], Int])
+False
+
+>>> isinstance(np.array([1, 2, 3, 4]), NDArray[Shape["2, 2"], Int])
+False
+
+```
+
+`nptyping` also provides `assert_isinstance`. In contrast to `assert isinstance(...)`, this won't cause IDEs or MyPy
+complaints. Here is an example: 
+```python
+>>> from nptyping import assert_isinstance
+
+>>> assert_isinstance(np.array([1]), NDArray[Shape["1"], Int])
+True
+
+```
+
+### NumPy Structured arrays
+
+You can also express structured arrays using `nptyping.Structure`:
+```python
+>>> from nptyping import Structure
+
+>>> Structure["name: Str, age: Int"]
+Structure['age: Int, name: Str']
+
+```
+
+Here is an example to see it in action:
+```python
+>>> from typing import Any
+>>> import numpy as np
+>>> from nptyping import NDArray, Structure
+
+>>> arr = np.array([("Peter", 34)], dtype=[("name", "U10"), ("age", "i4")])
+>>> isinstance(arr, NDArray[Any, Structure["name: Str, age: Int"]])
+True
+
+```
+
+Subarrays can be expressed with a shape expression between square brackets:
+```python
+>>> Structure["name: Int[3, 3]"]
+Structure['name: Int[3, 3]']
+
+```
+
+### NumPy Record arrays
+The recarray is a specialization of a structured array. You can use `RecArray`
+to express them.
+
+```python
+>>> from nptyping import RecArray
+
+>>> arr = np.array([("Peter", 34)], dtype=[("name", "U10"), ("age", "i4")])
+>>> rec_arr = arr.view(np.recarray)
+>>> isinstance(rec_arr, RecArray[Any, Structure["name: Str, age: Int"]])
+True
+
+```
+
+### Pandas DataFrames
+Pandas DataFrames can be expressed with `Structure` also. To make it more concise, you may want to alias `Structure`.
+```python
+>>> from nptyping import DataFrame, Structure as S
+
+>>> df: DataFrame[S["x: Float, y: Float"]]
+
+```
+
+### More examples
+
+Here is an example of a rich expression that can be done with `nptyping`:
+```python
+def plan_route(
+        locations: NDArray[Shape["[from, to], [x, y]"], Float]
+) -> NDArray[Shape["* stops, [x, y]"], Float]:
+    ...
+
+```
+
+More examples can be found in the [documentation](https://github.com/ramonhagenaars/nptyping/blob/master/USERDOCS.md#Examples).
+
+## Documentation
+
+* [User documentation](https://github.com/ramonhagenaars/nptyping/blob/master/USERDOCS.md) <br/>
+The place to go if you are using this library. <br/><br/>
+  
+* [Release notes](https://github.com/ramonhagenaars/nptyping/blob/master/HISTORY.md) <br/>
+To see what's new, check out the release notes. <br/><br/>
+
+* [Contributing](https://github.com/ramonhagenaars/nptyping/blob/master/CONTRIBUTING.md) <br/>
+If you're interested in developing along, find the guidelines here. <br/><br/>
+
+* [License](https://github.com/ramonhagenaars/nptyping/blob/master/LICENSE) <br/>
+If you want to check out how open source this library is.
+
+
