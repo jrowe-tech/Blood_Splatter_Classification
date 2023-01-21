@@ -5,3 +5,6 @@ Lib
 saved_images
 Scripts
 pyvenv.cfg
+.idea
+Lib/site-packages
+__pycache__
