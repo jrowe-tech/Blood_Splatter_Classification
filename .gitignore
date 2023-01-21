@@ -7,4 +7,4 @@ pyvenv.cfg
 .idea
 Lib/site-packages
 Lib
-__pycache__
+*.pyc
