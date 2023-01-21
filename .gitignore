@@ -1,1 +1,7 @@
 README.txt
+.pytest_cache
+Include
+Lib
+saved_images
+Scripts
+pyvenv.cfg

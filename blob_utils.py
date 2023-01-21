@@ -4,6 +4,7 @@ from typing import Tuple
 from nptyping import NDArray
 from random import randint
 from math import pi, hypot
+from typing import Dict, Union
 
 COLOR = Tuple[int, int, int]
 
@@ -212,10 +213,40 @@ def aruco_ratio(img, detector, marker_length) -> Tuple[bool, float]:
     return (False, 0.0)
 
 
-
 def generate_aruco_detector(type):
     dict = cv2.aruco.getPredefinedDictionary(type)
     params = cv2.aruco.DetectorParameters()
     detector = cv2.aruco.ArucoDetector(dict, params)
 
     return detector
+
+
+def categorize_blobs(blobs, categories: Dict) -> Dict:
+    sorted = filter(categories, key=lambda x: int(x[0]))
+
+    results = dict()
+    for i, blob in enumerate(blobs):
+        id = binary_range_search(blob.size, categories)
+
+
+def binary_range_search(key: Union[float, int], target: Tuple, **kwargs) -> Tuple:
+    """Uses Binary Search Algorithm To Clamp Value Into Range In O(log n)"""
+
+    # Grab cached left/right if recursion
+    left = kwargs.get("left", 0)
+    right = kwargs.get("right", len(target) - 1)
+
+    if left == right:
+        if right == 0:
+            return (None, target[0])
+        else:
+            return (target[-1], None)
+
+    mid = (left + right) // 2
+    if target[mid] <= key:
+        if target[mid + 1] > key:
+            return (target[mid], target[mid + 1])
+        else:
+            return binary_range_search(key, target, left=mid + 1, right=right)
+    else:
+        return binary_range_search(key, target, left=left, right=mid)

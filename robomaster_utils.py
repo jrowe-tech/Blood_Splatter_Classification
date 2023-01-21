@@ -20,24 +20,36 @@ class Robomaster:
     def get_frame(self):
         return self.camera.read_video_frame()
 
-    def move_left(self, dX: float, speed: float = 1.0):
-        self.chassis.move(x=-(dX/1000), xy_speed=speed)
-        self.speed_distance_sleep(dX, speed)
+    def move_left(self, dX: float, speed: float = 1.0, blocking=False):
+        self.chassis.move(x=-(dX / 1000), xy_speed=speed)
+
+        if blocking:
+            self.speed_distance_sleep(dX, speed)
+
         return
 
     def move_right(self, dX: float, speed: float = 1.0, blocking=False):
         self.chassis.move(x=(dX / 1000), xy_speed=speed)
-        self.speed_distance_sleep(dX, speed)
+
+        if blocking:
+            self.speed_distance_sleep(dX, speed)
+
         return
 
-    def move_forward(self, dY: float, speed: float = 1.0):
+    def move_forward(self, dY: float, speed: float = 1.0, blocking=False):
         self.chassis.move(y=(dY / 1000), xy_speed=speed)
-        self.speed_distance_sleep(dY, speed)
+
+        if blocking:
+            self.speed_distance_sleep(dY, speed)
+
         return
 
-    def move_backwards(self, dY: float, speed: float = 1.0):
+    def move_backwards(self, dY: float, speed: float = 1.0, blocking=False):
         self.chassis.move(y=-(dY / 1000), xy_speed=speed)
-        self.speed_distance_sleep(dY, speed)
+
+        if blocking:
+            self.speed_distance_sleep(dY, speed)
+
         return
 
     @staticmethod
