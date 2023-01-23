@@ -1,6 +1,7 @@
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
+import reportlab.lib as lib
 from os.path import basename
 from os import remove
 from glob import glob
@@ -13,11 +14,19 @@ class PDF(Canvas):
     """
 
     COLOR = [int, int, int]
+    INCH = lib.units.inch
+    MM = lib.units.mm
 
     def __init__(self, **kwargs):
         path = kwargs.get("path", r"reports/sample.pdf")
 
-        super().__init__(path)
+        letter_size = lib.pagesizes.letter
+        super().__init__(path, pagesize=letter_size)
+        self.page_size = {
+            "width": letter_size[0],
+            "height": letter_size[1]
+        }
+
         file_name = self.get_file_name(path)
         self.setTitle(
             self.get_file_name(file_name)
@@ -75,13 +84,20 @@ class PDF(Canvas):
         else:
             self.setFont(self.current_font, font_size)
 
-    def addHorizontalLine(self, x: int, y: int):
+    def addHorizontalLine(self, x: int, y: int,
+                          margin: float = 0., thickness: float = 1.0):
         """
         Adds horizontal line across length of PDF
-        Optional Params: Margin (int), Line Width (int)
+        Optional Params: Margin (inches), Line Thickness (inches)
         """
-        self.
 
+        thickness *= INCH
+        margin *= INCH
+
+        self.setLineWidth(width=thickness)
+        self.line(0 + margin, y, self.)
+
+    self.addPage = lambda: self.showPage()
 
     @staticmethod
     def get_file_name(path: str) -> str:
