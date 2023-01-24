@@ -49,6 +49,9 @@ class PDF(Canvas):
 
         self.fonts += self.getAvailableFonts()  # Add built-in fonts to font list
 
+        # Add Lambda Functions for typing style
+        self.addPage = lambda: self.showPage()
+
     def addLineText(self, text: str, x: int, y: int, **kwargs):
 
         font = kwargs.get("font", self.current_font)
@@ -84,20 +87,26 @@ class PDF(Canvas):
         else:
             self.setFont(self.current_font, font_size)
 
-    def addHorizontalLine(self, x: int, y: int,
-                          margin: float = 0., thickness: float = 1.0):
+    def addHorizontalLine(self, y: int, margin: float = 0.,
+                          thickness: float = 0.1, color: COLOR = (0, 0, 0)):
         """
         Adds horizontal line across length of PDF
-        Optional Params: Margin (inches), Line Thickness (inches)
+
+        int y: Vertical Coordinate (px)
+
+        float margin: Margin (inches)
+
+        float thickness: Line Thickness (inches)
+
+        (int, int, int) color: Color (RGB)
+
         """
 
-        thickness *= INCH
-        margin *= INCH
+        thickness *= self.INCH
+        margin *= self.INCH
 
         self.setLineWidth(width=thickness)
-        self.line(0 + margin, y, self.)
-
-    self.addPage = lambda: self.showPage()
+        self.line(0 + margin, y, self.page_size["width"] - margin, y)
 
     @staticmethod
     def get_file_name(path: str) -> str:
