@@ -66,12 +66,12 @@ class PDF(Canvas):
 
         self.drawCentredString(x, y, text)
 
-    def addCVImage(self, data, **kwargs):
-        temp = "static/images/temp.jpg"
+    def addCVImage(self, data, coords=(100, 200), **kwargs):
+        temp = "../static/images/temp.jpg"
 
         file = cv2.imwrite(temp, data)
 
-        self.drawInlineImage(temp, **kwargs)
+        self.drawInlineImage(temp, *coords, **kwargs)
 
         remove(temp)
 
@@ -106,6 +106,8 @@ class PDF(Canvas):
         margin *= self.INCH
 
         self.setLineWidth(width=thickness)
+        self.setFillColorRGB(*color)
+
         self.line(0 + margin, y, self.page_size["width"] - margin, y)
 
     @staticmethod

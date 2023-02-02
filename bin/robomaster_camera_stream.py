@@ -3,7 +3,7 @@ import robomaster.exceptions
 from robomaster import robot
 from robomaster import chassis
 from time import sleep
-from blob_utils import annotate_image_blobs
+from blob_utils import *
 from threading import Thread
 
 retry_time = 0.5
@@ -30,8 +30,15 @@ def ipgrab():
 
 
 def show_annotated_thread(img):
-    img = annotate_image_blobs(img, filterByArea=True, minArea=20,
+    blobs = detect_blobs(img, filterByArea=True, minArea=2,
                                filterByCircularity=True, minCircularity=0.7)
+
+    base_hsv = (180, 100, 100)
+    hsv_range = create_hsv_range(base_hsv, 20, 100, 100)
+
+    blobs = hsv_filter_blobs(img, blobs, hsv_range, percentage=0.1)
+
+    img = annotate_image_blobs(img, blobs)
     cv2.imshow("Blobbed Image", img)
 
 def stream_robomaster_video():

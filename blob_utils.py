@@ -108,11 +108,10 @@ def hsv_filter_blobs(img: NDArray, keypoints, hsv_range, percentage: float) -> N
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     # Construct Binary Mask From HSV Range
-    low, high = hsv_range
-    mask = cv2.inRange(hsv_img, (50, 0, 0), (200, 255, 255))
+    mask = cv2.inRange(hsv_img, *hsv_range)
 
     # Grab Configuration Paramaters From Image
-    width, height, _ = img.shape
+    height, width, _ = img.shape
 
     for pt in keypoints:
         # Configure Base Area
@@ -120,15 +119,6 @@ def hsv_filter_blobs(img: NDArray, keypoints, hsv_range, percentage: float) -> N
         diameter = int(radius * 2)
 
         area =  pi * (radius ** 2)
-
-        # Construct Blob Binary Mask
-        blank = np.zeros([diameter, diameter, 3], dtype=np.uint8)
-
-        x = blank.shape[0] // 2
-        y = blank.shape[0] // 2
-
-        blob = cv2.ellipse(blank, (x, y), (radius, radius), 0, 0, 360, (255, 255, 255), thickness=-1)
-        blob = cv2.cvtColor(blob, cv2.COLOR_BGR2GRAY)
 
         # Get Clamped Parameters For Edges
         left = int(pt.pt[0]) - radius
@@ -156,6 +146,15 @@ def hsv_filter_blobs(img: NDArray, keypoints, hsv_range, percentage: float) -> N
         else:
             dT = None
 
+        # Construct Blob Binary Cookie
+        blank = np.zeros([right-left, top-bottom, 3], dtype=np.uint8)
+
+        x = blank.shape[0] // 2
+        y = blank.shape[1] // 2
+
+        blob = cv2.ellipse(blank, (x, y), (radius, radius), 0, 0, 360, (255, 255, 255), thickness=-1)
+        blob = cv2.cvtColor(blob, cv2.COLOR_BGR2GRAY)
+
         # Crop Generated Cookie
         blob = blob[dB:dT, dL:dR]
 
@@ -170,7 +169,7 @@ def hsv_filter_blobs(img: NDArray, keypoints, hsv_range, percentage: float) -> N
         if valid_pixels / area >= percentage:
             valid_blobs.append(pt)
 
-    cv2.imshow("Masked HSV Values", hsv_img)
+    cv2.imshow("Masked HSV Values", mask)
 
     return tuple(valid_blobs)
 

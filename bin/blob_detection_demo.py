@@ -3,8 +3,8 @@ import cv2
 
 
 def main():
-    blood_color = (32, 255, 0)
-    blood_hsv = (66, 255, 255)
+    blood_color = (170, 255, 0)
+    blood_hsv = (0, 255, 255)
 
     blank = create_solid_image(600, 600)
     img = draw_random_blobs(blank, color=(0, 0, 0), amount=40)
