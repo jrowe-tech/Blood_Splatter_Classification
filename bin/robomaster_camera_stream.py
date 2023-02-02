@@ -2,12 +2,8 @@ import cv2
 import robomaster.exceptions
 from robomaster import robot
 from robomaster import chassis
-from time import sleep
-from blob_utils import *
-from threading import Thread
 
 retry_time = 0.5
-batch_size = 10
 
 def send_command(command, *args, **kwargs):
     try:
@@ -28,22 +24,7 @@ def ipgrab():
         print("Robot version: {0}".format(version))
         ep_robot.close()
 
-
-def show_annotated_thread(img):
-    blobs = detect_blobs(img, filterByArea=True, minArea=2,
-                               filterByCircularity=True, minCircularity=0.7)
-
-    base_hsv = (180, 100, 100)
-    hsv_range = create_hsv_range(base_hsv, 20, 100, 100)
-
-    blobs = hsv_filter_blobs(img, blobs, hsv_range, percentage=0.1)
-
-    img = annotate_image_blobs(img, blobs)
-    cv2.imshow("Blobbed Image", img)
-
 def stream_robomaster_video():
-
-    batch = 0
     ep_robot = robot.Robot()
     move_speed = 2.0
 
@@ -57,13 +38,8 @@ def stream_robomaster_video():
         ep_camera.start_video_stream(display=False)
 
         while True:
-            print("LOOP")
             img = ep_camera.read_cv2_image()
             img = cv2.resize(img, (600, 400))
-
-            if batch >= batch_size:
-                blob_thread = Thread(target=show_annotated_thread(img), daemon=True)
-                batch = 0
 
             cv2.imshow("Camera Stream", img)
             key = cv2.waitKey(1)
