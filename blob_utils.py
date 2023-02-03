@@ -62,6 +62,18 @@ def draw_random_blobs(img: NDArray, amount: int = 10, blob_size: Tuple = (5, 20)
     return img
 
 
+def overflow_hsv(img: NDArray, hsv_range: Tuple[COLOR, COLOR]) -> NDArray:
+    if hsv_range[0] > hsv_range[1]:
+        mask1 = cv2.inRange(img, hsv_range[0], (179, 255, 255))
+        mask2 = cv2.inRange(img, (0, 0, 0), hsv_range[1])
+        results = cv2.bitwise_or(mask1, mask2)
+
+    else:
+        results = cv2.inRange(img, hsv_range[0], hsv_range[1])
+
+    return results
+
+
 def create_hsv_range(hsv: Tuple, hue_range=20, sat_range=20, value_range=20) -> Tuple[COLOR, COLOR]:
     hue, saturation, value = hsv
 

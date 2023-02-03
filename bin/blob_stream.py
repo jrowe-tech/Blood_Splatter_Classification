@@ -118,12 +118,11 @@ class Blob_Window:
             if active:
                 formatted_hsv = tuple(tuple(x) for x in self.hsv_values)
 
+                frame = cv2.GaussianBlur(frame, (7, 7), 10)
                 hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-                hsv_mask = cv2.inRange(hsv_frame, *formatted_hsv)
+                hsv_mask = overflow_hsv(frame, formatted_hsv)
 
-                print(f"Current HSV: {self.hsv_values}\nFormatted: {formatted_hsv}")
                 if self.show_blobs:
-                    print(f"Blob Params: {self.blob_params}")
                     blobs = detect_blobs(frame, **self.blob_params)
 
                     if self.hsv_percent > 0:
