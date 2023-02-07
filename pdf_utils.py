@@ -168,7 +168,7 @@ class PDF(Canvas):
     def adjust_y(self, y, page_number):
         y_offset = (self.page_number - page_number) * self.page_size["height"]
 
-        return y_offset * y
+        return y_offset + y
 
     def addPageNumber(self):
         x = self.page_size["width"] - 40
@@ -291,6 +291,13 @@ class PDF(Canvas):
         # Display The Groupings On Top
         self.addLineText(f"Identified Splatter Groups: {', '.join(groups)}",
                         30, 700, center=False, font_size=16)
+
+    def createTitlePage(self, site, date, operator):
+        # Adds title page
+        pdf.addLineText("Sample Report", x=310, y=620, font_size=50)
+        pdf.addLineText("Site 9728-B", x=310, y=430)
+        pdf.addLineText("2/3/2023", x=310, y=310)
+        pdf.addLineText("Analyst Jacob Rowe", x=310, y=210)
 
     @staticmethod
     def get_file_name(path: str) -> str:

@@ -8,19 +8,16 @@ def generate_pdf_example():
     pdf = PDF(path=r'../reports/sample.pdf', logo="../static/images/logo.jpg")
 
     # Adds title page
-    pdf.addLineText("Sample Report", x=310, y=620, font_size=50)
-    pdf.addLineText("Site 9728-B", x=310, y=430)
-    pdf.addLineText("2/3/2023", x=310, y=310)
-    pdf.addLineText("Analyst Jacob Rowe", x=310, y=210)
+    pdf.addLineText("Sample Report", x=310, y=pdf.adjust_y(620, 1), font_size=50)
+    pdf.addLineText("Site 9728-B", x=310, y=pdf.adjust_y(430, 1))
+    pdf.addLineText("2/3/2023", x=310, y=pdf.adjust_y(310, 1))
+    pdf.addLineText("Analyst Jacob Rowe", x=310, y=pdf.adjust_y(210, 1))
 
     # Change sample ArUco Here
     aruco_code = 1
     aruco_ratio = 0.4
 
     pdf.generateSplatterAnalysis(aruco_ratio, aruco_code)
-
-    sleep(3)
-
     pdf.generateSplatterAnalysis(aruco_ratio, 3)
     pdf.save()
 
