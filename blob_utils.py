@@ -4,9 +4,56 @@ from typing import Tuple
 from nptyping import NDArray
 from random import randint
 from math import pi, hypot
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 COLOR = Tuple[int, int, int]
+
+global default_params
+global default_hsv
+global default_categories
+
+default_categories = (
+    {
+        "size": 1.0,
+        "name": "High Velocity",
+        "causes": (
+            "Gunshots",
+            "Explosions",
+            "High-Speed Vehicle Collision"
+        )
+    },
+    {
+        "size": 5.0,
+        "name": "Medium Velocity",
+        "causes": (
+            "Blunt Force Trauma",
+            "Cutting",
+            "Stabbing"
+        )
+    },
+    {
+        "size": 10.0,
+        "name": "Low Velocity",
+        "causes": (
+            "Splashes",
+            "Swipes",
+            "Running",
+            "Idle Blood Loss"
+        )
+    }
+)
+default_params = {
+    "filterByArea": True,
+    "minArea": 20,
+    "filterByCircularity": True,
+    "minCircularity": 0.35,
+    "filterByConvexity": True,
+    "minConvexity": 0.40
+}
+default_hsv = {
+    "hsv_range": ((120, 15, 50), (20, 255, 255)),
+    "percentage": 0.2
+}
 
 def annotate_image_blobs(img: NDArray, keypoints: Tuple, color: COLOR = (0, 0, 255)) -> NDArray:
     blank = np.zeros((1, 1))
@@ -63,9 +110,12 @@ def draw_random_blobs(img: NDArray, amount: int = 10, blob_size: Tuple = (5, 20)
 
 
 def overflow_hsv(img: NDArray, hsv_range: Tuple[COLOR, COLOR]) -> NDArray:
-    if hsv_range[0] > hsv_range[1]:
-        mask1 = cv2.inRange(img, hsv_range[0], (179, 255, 255))
-        mask2 = cv2.inRange(img, (0, 0, 0), hsv_range[1])
+    min_hue, min_sat, min_val = hsv_range[0]
+    max_hue, max_sat, max_val = hsv_range[1]
+
+    if min_hue > max_hue:
+        mask1 = cv2.inRange(img, (min_hue, min_sat, min_val), (180, max_sat, max_val))
+        mask2 = cv2.inRange(img, (0, min_hue, min_val), hsv_range[1])
         results = cv2.bitwise_or(mask1, mask2)
 
     else:
@@ -113,17 +163,17 @@ def detect_blobs_verbose(img, mask, **kwargs):
     return keypoints, descriptors
 
 
-def hsv_filter_blobs(img: NDArray, keypoints, hsv_range, percentage: float) -> NDArray:
+def hsv_filter_blobs(img: NDArray, keypoints, hsv_range, percentage: float) -> Tuple:
     valid_blobs = []
 
     # Convert Image To HSV For Better Filtering
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     # Construct Binary Mask From HSV Range
-    mask = cv2.inRange(hsv_img, *hsv_range)
+    mask = overflow_hsv(hsv_img, hsv_range)
 
     # Grab Configuration Paramaters From Image
-    height, width, _ = img.shape
+    width, height, _ = img.shape
 
     for pt in keypoints:
         # Configure Base Area
@@ -140,8 +190,8 @@ def hsv_filter_blobs(img: NDArray, keypoints, hsv_range, percentage: float) -> N
 
         # Generate Cropped Coordinates From Image Size
         crop_left = max(left, 0)
-        crop_right = min(right, width)
-        crop_top = min(top, height)
+        crop_right = min(right, height)
+        crop_top = min(top, width)
         crop_bottom = max(bottom, 0)
 
         # Cache Displacement For Cropping
@@ -181,9 +231,52 @@ def hsv_filter_blobs(img: NDArray, keypoints, hsv_range, percentage: float) -> N
         if valid_pixels / area >= percentage:
             valid_blobs.append(pt)
 
-    cv2.imshow("Masked HSV Values", mask)
-
     return tuple(valid_blobs)
+
+
+def create_blob_display(img: NDArray, blobs: Tuple, bg_color: COLOR = (0, 0, 0),
+                     weight: float = 1.0) -> NDArray:
+    """
+    Generates an image with detected blobs highlighted.
+
+    :param img:
+    :param blobs:
+    :return:
+    """
+
+    width, height, _ = img.shape
+
+    xOff, yOff = (20, 20)
+
+    # Generate Mask Array
+    fg = np.zeros([width, height, 3], dtype=np.uint8)
+
+    # Apply Background Color Effects
+    bg_array = create_solid_image(width, height, bg_color)
+    lerped_img = cv2.addWeighted(bg_array, weight, img, (1.0 - weight), 0.0)
+
+    if blobs:
+        for i, blob in enumerate(blobs):
+            x = int(blob.pt[0])
+            y = int(blob.pt[1])
+
+            diameter = int(blob.size)
+
+            fg_mask = cv2.ellipse(fg, ((x, y), (diameter, diameter), 0), (255, 255, 255), thickness=-1)
+
+        fg_mask = cv2.cvtColor(fg_mask, cv2.COLOR_BGR2GRAY)
+        bg_mask = cv2.bitwise_not(fg_mask)
+
+        # Generate Colored Masks
+        colored_fg = cv2.bitwise_or(img, img, mask=fg_mask)
+        colored_bg = cv2.bitwise_or(lerped_img, lerped_img, mask=bg_mask)
+
+        # Combine Colored Masks
+        results = colored_bg + colored_fg
+    else:
+        results = lerped_img
+
+    return results
 
 
 def aruco_ratio(img, detector, marker_length) -> Tuple[bool, float]:
@@ -232,12 +325,80 @@ def generate_aruco_detector(type):
     return detector
 
 
-def categorize_blobs(blobs, categories: Dict) -> Dict:
-    sorted = filter(categories, key=lambda x: int(x[0]))
+def categorize_blobs(blobs, ratio: float, categories=default_categories) -> List[str]:
+    """
+    Categories blobs into named list based on pixel values of blob sizes
+    and aruco px2mm ratio. Needs tuple of dict with "name" and "size"
+    attributes per grouping.
 
-    results = dict()
+    :param blobs:
+    :param categories:
+    :param ratio:
+    :return:
+    """
+
+    l = len(categories)
+
+    results = []
+    for blob in blobs:
+        blob_mm = ratio * blob.size
+
+        i = 0
+        while True:
+            if blob_mm < categories[i]["size"]:
+                results.append((categories[i]["name"], blob_mm))
+                break
+
+            if i == (l - 1):
+                results.append((categories[-1]["name"], blob_mm))
+                break
+
+            i += 1
+
+    return results
+
+
+def draw_blob_categories(img: NDArray, blobs, categories,
+                         color: COLOR = (255, 255, 255)) -> NDArray:
+
+    # Draw Top-Left Labels
+    img = cv2.putText(img, "Low Velocity", (0, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5, color, 1, cv2.LINE_AA)
+    img = cv2.putText(img, "Medium Velocity", (250, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                      0.5, color, 1, cv2.LINE_AA)
+    img = cv2.putText(img, "High Velocity", (500, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                      0.5, color, 1, cv2.LINE_AA)
+
     for i, blob in enumerate(blobs):
-        id = binary_range_search(blob.size, categories)
+        x = int(blob.pt[0])
+        y = int(blob.pt[1])
+
+        name = categories[i][0]
+
+        if name == "Low Velocity":
+            x0, y0 = (50, 50)
+        elif name == "Medium Velocity":
+            x0, y0 = (300, 50)
+        else:
+            x0, y0 = (550, 50)
+
+        img = cv2.line(img, (x0, y0), (x, y), color, 1)
+
+    return img
+
+
+def draw_blob_sizes(img: NDArray, blobs, sizes, color: COLOR = (255, 255, 255)) -> NDArray:
+    xOff = 0
+    yOff = 15
+
+    for i, blob in enumerate(blobs):
+        x = int(blob.pt[0])
+        y = int(blob.pt[1])
+
+        img = cv2.putText(img, f"{sizes[i]:.2f}mm", (x + xOff, y + yOff),
+                          cv2.FONT_HERSHEY_SIMPLEX, 0.2, color, 1, cv2.LINE_AA)
+
+    return img
 
 
 def binary_range_search(key: Union[float, int], target: Tuple, **kwargs) -> Tuple:

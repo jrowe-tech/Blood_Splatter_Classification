@@ -2,6 +2,7 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 import reportlab.lib as lib
+from reportlab.graphics import renderPM
 from os.path import basename
 from os import remove
 from glob import glob
@@ -16,18 +17,20 @@ class PDF(Canvas):
     COLOR = [int, int, int]
     INCH = lib.units.inch
     MM = lib.units.mm
+    LETTER_SIZE = lib.pagesizes.letter
 
     def __init__(self, **kwargs):
-        path = kwargs.get("path", r"reports/sample.pdf")
+        self.path = kwargs.get("path", r"reports/sample.pdf")
 
-        letter_size = lib.pagesizes.letter
-        super().__init__(path, pagesize=letter_size)
+        letter_size = kwargs.get("size", self.LETTER_SIZE)
+
+        super().__init__(self.path, pagesize=self.LETTER_SIZE)
         self.page_size = {
-            "width": letter_size[0],
-            "height": letter_size[1]
+            "width": self.LETTER_SIZE[0],
+            "height": self.LETTER_SIZE[1]
         }
 
-        file_name = self.get_file_name(path)
+        file_name = self.get_file_name(self.path)
         self.setTitle(
             self.get_file_name(file_name)
         )
@@ -49,14 +52,26 @@ class PDF(Canvas):
 
         self.fonts += self.getAvailableFonts()  # Add built-in fonts to font list
 
-        # Add Lambda Functions for typing style
-        self.addPage = lambda: self.showPage()
+        self.page_number = 1
+
+        self.number_pages = kwargs.get("page_numbers", True)
+        self.logo = kwargs.get("logo", None)
+
+        # Append elements onto first page
+        self.addLogo()
+        self.addPageNumber()
+
+    def addLogo(self):
+        if self.logo:
+            self.drawImage(self.logo, 20, self.page_size["height"] - 40,
+                           width=100, height=20)
 
     def addLineText(self, text: str, x: int, y: int, **kwargs):
 
         font = kwargs.get("font", self.current_font)
         font_size = kwargs.get("font_size", 12)
         color = kwargs.get("color", (0, 0, 0))
+        centered = kwargs.get("center", True)
 
         if font in self.fonts:
             self.setFont(font, font_size)
@@ -64,16 +79,26 @@ class PDF(Canvas):
 
         self.setFillColorRGB(*color)
 
-        self.drawCentredString(x, y, text)
+        if centered:
+            self.drawCentredString(x, y, text)
+        else:
+            temp = self.beginText(x, y, direction="right")
+            temp.textOut(text)
+            self.drawText(temp)
 
-    def addCVImage(self, data, coords=(100, 200), **kwargs):
-        temp = "../static/images/temp.jpg"
+    def addCVImage(self, data, name, coords=(100, 200), **kwargs):
+        path = f"../static/images/{name}.jpg"
 
-        file = cv2.imwrite(temp, data)
+        cv2.imwrite(path, data)
 
-        self.drawInlineImage(temp, *coords, **kwargs)
+        print(f"PATH: {path}")
 
-        remove(temp)
+        self.drawImage(path, *coords, **kwargs)
+
+        remove(path)
+
+    def drawPNG(self, coords, path, size=72):
+        renderPM.drawToFile(self.path, path, 'PNG', dpi=size)
 
     def change_font(self, font_size: int, font: str) -> None:
         """
@@ -108,7 +133,50 @@ class PDF(Canvas):
         self.setLineWidth(width=thickness)
         self.setFillColorRGB(*color)
 
-        self.line(0 + margin, y, self.page_size["width"] - margin, y)
+        self.line(0 + margin, y,
+                  self.page_size["width"] - margin, y)
+
+    def addVerticalLine(self, x: int, margin: float = 0.,
+                          thickness: float = 0.1, color: COLOR = (0, 0, 0)):
+        """
+                Adds vertical line across length of PDF
+
+                int x: Horizontal Coordinate (px)
+
+                float margin: Margin (inches)
+
+                float thickness: Line Thickness (inches)
+
+                (int, int, int) color: Color (RGB)
+
+        """
+
+        thickness *= self.INCH
+        margin *= self.INCH
+
+        self.setLineWidth(width=thickness)
+        self.setFillColorRGB(*color)
+
+        self.line(x, margin, x, self.page_size["height"] - margin)
+
+    def addDecoratedPage(self):
+        self.page_number += 1
+        self.showPage()
+
+        self.addLogo()
+        self.addPageNumber()
+
+    def adjust_y(self, y, page_number):
+        y_offset = (self.page_number - page_number) * self.page_size["height"]
+
+        return y_offset * y
+
+    def addPageNumber(self):
+        x = self.page_size["width"] - 40
+        y = self.page_size["height"] - 40
+
+        self.setFontSize(15)
+        self.drawCentredString(x, y, str(self.page_number))
 
     @staticmethod
     def get_file_name(path: str) -> str:

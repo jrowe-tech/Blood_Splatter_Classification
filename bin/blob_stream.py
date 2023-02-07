@@ -3,7 +3,7 @@ import cv2
 
 
 
-class Blob_Window:
+class BlobWindow:
     def __init__(self, window_name="Control Panel", size=(500, 500)):
         self.window_name = window_name
 
@@ -36,13 +36,36 @@ class Blob_Window:
         # Construct Checkbox Objects
         cv2.createTrackbar("Detect Blobs", self.window_name, 0, 1, self.blob_call)
         cv2.createTrackbar("HSV Percentage", self.window_name, 0, 100, self.hsv_filter_call)
-        cv2.createTrackbar("Minimum Blob Area", self.window_name, 0, 100, self.area_call)
-        cv2.createTrackbar("Minimum Circularity", self.window_name, 0, 100, self.circularity_call)
-        cv2.createTrackbar("Minimum Convexity", self.window_name, 0, 100, self.convexity_call)
-        cv2.createTrackbar("Minimum Inertia", self.window_name, 0, 100, self.inertia_call)
+        cv2.createTrackbar("Min Area", self.window_name, 0, 100, self.area_call)
+        cv2.createTrackbar("Min Circularity", self.window_name, 0, 100, self.circularity_call)
+        cv2.createTrackbar("Min Convexity", self.window_name, 0, 100, self.convexity_call)
+        cv2.createTrackbar("Min Inertia", self.window_name, 0, 100, self.inertia_call)
 
         self.show_blobs = False
         self.hsv_percent = 0.00
+        self.categories = (
+            {
+                "size": 5.0,
+                "name": "Low Velocity",
+                "causes": (
+                    "foo bar"
+                )
+            },
+            {
+                "size": 3.0,
+                "name": "Medium Velocity",
+                "causes": (
+                    "foo bar"
+                )
+            },
+            {
+                "size": 1.0,
+                "name": "High Velocity",
+                "causes": (
+                    "foo bar"
+                )
+            }
+        )
 
 
     def blob_call(self, val):
@@ -118,9 +141,10 @@ class Blob_Window:
             if active:
                 formatted_hsv = tuple(tuple(x) for x in self.hsv_values)
 
-                frame = cv2.GaussianBlur(frame, (7, 7), 10)
+                # Add If There Are Too Many HSV False Positives
+                # frame = cv2.GaussianBlur(frame, (5, 5), 10)
                 hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-                hsv_mask = overflow_hsv(frame, formatted_hsv)
+                hsv_mask = overflow_hsv(hsv_frame, formatted_hsv)
 
                 if self.show_blobs:
                     blobs = detect_blobs(frame, **self.blob_params)
@@ -129,9 +153,24 @@ class Blob_Window:
                         blobs = hsv_filter_blobs(frame, blobs, formatted_hsv,
                                                  self.hsv_percent)
 
-                    frame = annotate_image_blobs(frame, blobs)
 
-                cv2.imshow("Detection Frame", frame)
+
+                    if blobs:
+                        blob_frame = annotate_image_blobs(frame, blobs)
+
+                        colored_mask = create_blob_display(frame, blobs, weight=0.9)
+
+                        named_blobs = categorize_blobs(blobs, self.categories, 0.1)
+
+                        print(*named_blobs)
+
+
+
+                    cv2.imshow("Detailed Frame", colored_mask)
+                else:
+                    blob_frame = frame
+
+                cv2.imshow("Detection Frame", blob_frame)
                 cv2.imshow("HSV Mask", hsv_mask)
 
             key = cv2.waitKey(1)
@@ -143,7 +182,7 @@ class Blob_Window:
 
 
 def main():
-    window = Blob_Window()
+    window = BlobWindow()
     window.stream()
 
 

@@ -4,7 +4,8 @@ from robomaster_utils import Robomaster
 
 # Add Driver Code Here
 def main():
-    driver = Robomaster()
+    robot = Robomaster()
+
 
 
 if __name__ == "__main__":
