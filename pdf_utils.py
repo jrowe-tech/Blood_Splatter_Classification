@@ -3,6 +3,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 import reportlab.lib as lib
 from reportlab.graphics import renderPM
+from blob_utils import *
 from os.path import basename
 from os import remove
 from glob import glob
@@ -91,8 +92,6 @@ class PDF(Canvas):
 
         cv2.imwrite(path, data)
 
-        print(f"PATH: {path}")
-
         self.drawImage(path, *coords, **kwargs)
 
         remove(path)
@@ -177,6 +176,121 @@ class PDF(Canvas):
 
         self.setFontSize(15)
         self.drawCentredString(x, y, str(self.page_number))
+
+    def generateSplatterAnalysis(self, aruco_ratio: float, aruco_id: int, img: NDArray = None):
+        """
+        Generates completed template page and applies blood splatter analysis.
+        Simply add aruco ratio / id detected elsewhere and voila! It's done!
+
+        :param img:
+        :param aruco_ratio:
+        :return:
+        """
+
+        # Add static elements
+        self.addDecoratedPage()
+        self.addLineText("Potential Causes:", x=30, y=175, font_size=16, center=False)
+        self.addLineText("Fig. 1: Captured Frame", x=173, y=450)
+        self.addLineText("Fig. 2: Low Velocity Splatters", x=446, y=450)
+        self.addLineText("Fig. 3: Medium Velocity Splatters", x=173, y=210)
+        self.addLineText("Fig. 4: High Velocity Splatters", x=446, y=210)
+        self.addLineText(f"Identified ID: {aruco_id}", x=480,
+                        y=20, font_size=16)
+
+        # Get picture sample
+        if img:
+            frame = img
+        else:
+            cap = cv2.VideoCapture(0)
+            _, frame = cap.read()
+            cap.release()
+
+        # Detect blobs with default parameters
+        blobs = detect_blobs(frame, **default_params)
+        blobs = hsv_filter_blobs(frame, blobs, **default_hsv)
+
+        # Categorize Blobs By Size
+        circled = annotate_image_blobs(frame, blobs)
+        sorted_blobs = categorize_blobs(blobs, aruco_ratio)
+
+        # Organize Blob Images By Size
+        low_blobs = []
+        medium_blobs = []
+        high_blobs = []
+        low_sizes = []
+        medium_sizes = []
+        high_sizes = []
+
+        for i, blob in enumerate(blobs):
+            name = sorted_blobs[i][0]
+            size = sorted_blobs[i][1]
+
+            if name == "Low Velocity":
+                low_blobs.append(blob)
+                low_sizes.append(size)
+            elif name == "Medium Velocity":
+                medium_blobs.append(blob)
+                medium_sizes.append(size)
+            else:
+                high_blobs.append(blob)
+                high_sizes.append(size)
+
+        # Construct Colored Masks Per Detected
+        low_img = create_blob_display(frame, low_blobs, weight=0.9)
+        medium_img = create_blob_display(frame, medium_blobs, weight=0.9)
+        high_img = create_blob_display(frame, high_blobs, weight=0.9)
+
+        # Append Blob Sizes Onto Images
+        low_img = draw_blob_sizes(low_img, low_blobs, low_sizes)
+        medium_img = draw_blob_sizes(medium_img, medium_blobs, medium_sizes)
+        high_img = draw_blob_sizes(high_img, high_blobs, high_sizes)
+
+        # Construct Numpy array for detected aruco codes
+        arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_7X7_100)
+        aruco_img = cv2.aruco.drawMarker(arucoDict, aruco_id, 500)
+
+        maskWidth = 200
+        maskHeight = 200
+
+        # Add Sample Images
+        cID = self.page_number
+        self.addCVImage(circled, f"circled{cID}", (73, 470), width=maskWidth, height=maskHeight)
+        self.addCVImage(low_img, f"lowV{cID}", (346, 470), width=maskWidth, height=maskHeight)
+        self.addCVImage(medium_img, f"mediumV{cID}", (73, 230), width=maskWidth, height=maskHeight)
+        self.addCVImage(high_img, f"highV{cID}", (346, 230), width=maskWidth, height=maskHeight)
+        self.addCVImage(aruco_img, f"Aruco{cID}", (410, 40), width=140, height=140)
+
+        # Add Potential Causes Based On Groupings
+        x = 20
+        y = 160
+        yOff = -15
+
+        causes = []
+        groups = []
+
+        if low_blobs:
+            causes += default_categories[2]["causes"]
+            groups.append("Low Velocity")
+        if medium_blobs:
+            causes += default_categories[1]["causes"]
+            groups.append("Medium Velocity")
+        if high_blobs:
+            causes += default_categories[0]["causes"]
+            groups.append("High Velocity")
+
+        # Add N/A If No Blobs Detected
+        if not groups:
+            groups.append("N/A")
+            causes.append("N/A")
+
+        # Display Each Cause Dynamically
+        for cause in causes:
+            self.addLineText(cause, 40, y, center=False, font_size=13)
+            y += yOff
+
+        # Display The Groupings On Top
+        self.addLineText(f"Identified Splatter Groups: {', '.join(groups)}",
+                        30, 700, center=False, font_size=16)
 
     @staticmethod
     def get_file_name(path: str) -> str:
