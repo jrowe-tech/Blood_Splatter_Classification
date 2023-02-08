@@ -12,16 +12,15 @@ def main():
     detector = generate_aruco_detector(cv2.aruco.DICT_7X7_100)
 
     # Construct PDF Report
-    # path = f"report/{input('Name of generated pdf (include extensions): ')}"
-    path='report/test.pdf'
+    path = f"report/{input('Name of generated pdf (include extensions): ')}"
     pdf = PDF(path=path, logo="static/images/logo.jpg")
 
     # Initialize Robomaster UDP Stream
-    # robot = Robomaster()
+    robot = Robomaster()
 
     while True:
         # Ask For Input
-        # input("Hit Enter To Begin Blood Splatter Analysis")
+        input("Hit Enter To Begin Blood Splatter Analysis")
 
         cap = cv2.VideoCapture(0)
         while True:
@@ -54,7 +53,6 @@ def main():
             robot.move_right(500, speed=0.4, blocking=True)
 
     # Ask For Credentials
-
     name = input("Enter your operator title >>> ")
     site = input("Enter the name of the site >>> ")
     date = date.strftime(date.today(), "%mm/dd/YYYY%")
@@ -62,7 +60,7 @@ def main():
     # Construct Title Page
     pdf.createTitlePage(site, date, name)
 
-    # Save Completed PDF
+    # Save Completed PDF (Will Be In Reports Folder)
     pdf.save()
 
     cv2.destroyAllWindows()
