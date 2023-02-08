@@ -247,7 +247,7 @@ class PDF(Canvas):
 
         # Construct Numpy array for detected aruco codes
         arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_7X7_100)
-        aruco_img = cv2.aruco.drawMarker(arucoDict, aruco_id, 500)
+        aruco_img = cv2.aruco.generateImageMarker(arucoDict, aruco_id, 500)
 
         maskWidth = 200
         maskHeight = 200

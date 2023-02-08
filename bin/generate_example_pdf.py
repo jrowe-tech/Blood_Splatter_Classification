@@ -17,6 +17,7 @@ def generate_pdf_example():
     aruco_code = 1
     aruco_ratio = 0.4
 
+    # print(f"Aruco Dir: {dir(cv2.aruco)}")
     pdf.generateSplatterAnalysis(aruco_ratio, aruco_code)
     pdf.generateSplatterAnalysis(aruco_ratio, 3)
     pdf.save()
