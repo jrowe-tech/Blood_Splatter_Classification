@@ -280,6 +280,8 @@ def create_blob_display(img: NDArray, blobs: Tuple, bg_color: COLOR = (0, 0, 0),
 
 
 def aruco_ratio(img, detector, marker_length) -> Tuple[bool, float]:
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
     # Detect AruCo Stickers
     corners, ids, rejected = detector.detectMarkers(img)
 

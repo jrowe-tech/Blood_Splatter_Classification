@@ -21,7 +21,7 @@ class Robomaster:
         return self.camera.read_video_frame()
 
     def move_left(self, dX: float, speed: float = 1.0, blocking=False):
-        self.chassis.move(x=-(dX / 1000), xy_speed=speed)
+        self.chassis.move(y=-(dX / 1000), xy_speed=speed)
 
         if blocking:
             self.speed_distance_sleep(dX, speed)
@@ -29,7 +29,7 @@ class Robomaster:
         return
 
     def move_right(self, dX: float, speed: float = 1.0, blocking=False):
-        self.chassis.move(x=(dX / 1000), xy_speed=speed)
+        self.chassis.move(y=(dX / 1000), xy_speed=speed)
 
         if blocking:
             self.speed_distance_sleep(dX, speed)
@@ -54,5 +54,10 @@ class Robomaster:
 
     @staticmethod
     def speed_distance_sleep(distance: Union[int, float], speed: Union[int, float]):
-        sleep((distance / speed) * 100)
+        distance /= 1000
+        time = distance / speed
+        print(f"Time (in seconds): {time} \n"
+              f"Distance: {distance}mm"
+              f"Speed: {speed}m/s")
+        sleep(time + 6)
         return
