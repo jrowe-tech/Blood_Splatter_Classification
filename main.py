@@ -9,7 +9,9 @@ import cv2
 # Add Driver Code Here
 def main():
     # Initialize Variables
-    detector = generate_aruco_detector(cv2.aruco.DICT_7X7_100)
+    detector = cv2.aruco.getPredefinedDictionary(
+        cv2.aruco.DICT_7X7_100
+    )
 
     # Construct PDF Report
     path = f"report/{input('Name of generated pdf (include extensions): ')}"
@@ -22,13 +24,11 @@ def main():
         # Ask For Input
         input("Hit Enter To Begin Blood Splatter Analysis")
 
-        cap = cv2.VideoCapture(0)
         while True:
             # Detect Aruco Code + Ratio
-            # frame = robot.get_frame()
-            _, frame = cap.read()
+            frame = robot.get_frame()
             frame = cv2.GaussianBlur(frame, (5, 5), 0)
-            detected, ratio = aruco_ratio(frame, detector, 100)
+            detected, ratio, aruco_id = aruco_ratio(frame, detector, 100)
 
             # Signal aruco code detection
             if detected:
@@ -38,13 +38,13 @@ def main():
                 # robot.ep_robot.
                 pass
 
-            sleep(3.0)
+            sleep(1.0)
 
         # Move robot to blood splatter scene
         robot.move_left(100, blocking=True)
 
         # Run detection algorithm
-        pdf.generateSplatterAnalysis(ratio, detected)
+        pdf.generateSplatterAnalysis(ratio, aruco_id)
 
         repeat = input("Run again? (y/n) >>> ").lower()
         if repeat not in {"y", "yes"}:
@@ -55,7 +55,7 @@ def main():
     # Ask For Credentials
     name = input("Enter your operator title >>> ")
     site = input("Enter the name of the site >>> ")
-    date = date.strftime(date.today(), "%mm/dd/YYYY%")
+    date = datetime.date.strftime(datetime.date.today(), "%mm/dd/YYYY%")
 
     # Construct Title Page
     pdf.createTitlePage(site, date, name)

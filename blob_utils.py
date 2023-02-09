@@ -279,7 +279,7 @@ def create_blob_display(img: NDArray, blobs: Tuple, bg_color: COLOR = (0, 0, 0),
     return results
 
 
-def aruco_ratio(img, detector, marker_length) -> Tuple[bool, float]:
+def aruco_ratio(img, detector, marker_length) -> Tuple[bool, int, float]:
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Detect AruCo Stickers
@@ -314,9 +314,9 @@ def aruco_ratio(img, detector, marker_length) -> Tuple[bool, float]:
         # Return mm To Pixel Ratio
         ratio = marker_length / avg_size
 
-        return (True, ratio)
+        return (True, ids[0], ratio)
 
-    return (False, 0.0)
+    return (False, None, 0.0)
 
 
 def generate_aruco_detector(type):
