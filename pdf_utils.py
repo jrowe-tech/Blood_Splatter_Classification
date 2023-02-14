@@ -88,7 +88,7 @@ class PDF(Canvas):
             self.drawText(temp)
 
     def addCVImage(self, data, name, coords=(100, 200), **kwargs):
-        path = f"../static/images/{name}.jpg"
+        path = f"static/images/{name}.jpg"
 
         cv2.imwrite(path, data)
 
@@ -167,6 +167,7 @@ class PDF(Canvas):
 
     def adjust_y(self, y, page_number):
         y_offset = (self.page_number - page_number) * self.page_size["height"]
+        print(f"Offset: {y_offset}")
 
         return y_offset + y
 
@@ -198,7 +199,7 @@ class PDF(Canvas):
                         y=20, font_size=16)
 
         # Get picture sample
-        if img:
+        if img is not None:
             frame = img
         else:
             cap = cv2.VideoCapture(0)
@@ -247,6 +248,7 @@ class PDF(Canvas):
 
         # Construct Numpy array for detected aruco codes
         arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_7X7_100)
+        print(f"Aruco ID: {aruco_id}")
         aruco_img = cv2.aruco.generateImageMarker(arucoDict, aruco_id, 500)
 
         maskWidth = 200
@@ -294,10 +296,10 @@ class PDF(Canvas):
 
     def createTitlePage(self, site, date, operator):
         # Adds title page
-        pdf.addLineText("Sample Report", x=310, y=620, font_size=50)
-        pdf.addLineText("Site 9728-B", x=310, y=430)
-        pdf.addLineText("2/3/2023", x=310, y=310)
-        pdf.addLineText("Analyst Jacob Rowe", x=310, y=210)
+        self.addLineText("Blood Splatter Analysis", x=310, y=620, font_size=50)
+        self.addLineText("Site 9728-B", x=310, y=430)
+        self.addLineText("2/3/2023", x=310, y=310)
+        self.addLineText("Analyst Jacob Rowe", x=310, y=210)
 
     @staticmethod
     def get_file_name(path: str) -> str:

@@ -14,7 +14,7 @@ global default_categories
 
 default_categories = (
     {
-        "size": 1.0,
+        "size": 4.2,
         "name": "High Velocity",
         "causes": (
             "Gunshots",
@@ -23,7 +23,7 @@ default_categories = (
         )
     },
     {
-        "size": 5.0,
+        "size": 7.0,
         "name": "Medium Velocity",
         "causes": (
             "Blunt Force Trauma",
@@ -276,6 +276,10 @@ def create_blob_display(img: NDArray, blobs: Tuple, bg_color: COLOR = (0, 0, 0),
     else:
         results = lerped_img
 
+    print(f"Blob Count: {len(blobs)}")
+    results = cv2.putText(results, str(len(blobs)), (0, 0), cv2.FONT_HERSHEY_SIMPLEX,
+                     50, (255, 255, 255), 2, cv2.LINE_AA)
+
     return results
 
 
@@ -314,7 +318,7 @@ def aruco_ratio(img, detector, marker_length) -> Tuple[bool, int, float]:
         # Return mm To Pixel Ratio
         ratio = marker_length / avg_size
 
-        return (True, ids[0], ratio)
+        return (True, ids[0][0], ratio)
 
     return (False, None, 0.0)
 

@@ -10,7 +10,7 @@ class Robomaster:
         self.ep_robot = robot.Robot()
         self.ep_robot.initialize(conn_type="ap", proto_type="udp")
         self.camera = self.ep_robot.camera
-        self.camera.start_video_stream(display=True)
+        self.camera.start_video_stream(display=False)
         self.chassis = self.ep_robot.chassis
 
     def get_version(self) -> str:
@@ -18,7 +18,7 @@ class Robomaster:
         return f"Robomaster EP Version: {version}"
 
     def get_frame(self):
-        return self.camera.read_video_frame()
+        return self.camera.read_cv2_image()
 
     def move_left(self, dX: float, speed: float = 1.0, blocking=False):
         self.chassis.move(y=-(dX / 1000), xy_speed=speed)
