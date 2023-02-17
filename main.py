@@ -9,52 +9,15 @@ import sys
 from time import sleep
 import cv2
 
-"""
-def move_left(self, dX: float, speed: float = 1.0, blocking=False):
-    self.chassis.move(y=-(dX / 1000), xy_speed=speed)
-
-    if blocking:
-        self.speed_distance_sleep(dX, speed)
-
-    return
-
-
-def move_right(self, dX: float, speed: float = 1.0, blocking=False):
-    self.chassis.move(y=(dX / 1000), xy_speed=speed)
-
-    if blocking:
-        self.speed_distance_sleep(dX, speed)
-
-    return
-
-
-def move_forward(self, dY: float, speed: float = 1.0, blocking=False):
-    self.chassis.move(y=(dY / 1000), xy_speed=speed)
-
-    if blocking:
-        self.speed_distance_sleep(dY, speed)
-
-    return
-
-
-def move_backwards(self, robot, dY: float, speed: float = 1.0, blocking=False):
-    self.chassis.move(y=-(dY / 1000), xy_speed=speed)
-
-    if blocking:
-        self.speed_distance_sleep(dY, speed)
-
-    return
-"""
-
 
 # Reset to original position
-def reset(dX):
+def reset():
     robot = Robomaster()
     robot.move_left(dX * 1.8)
 
 
 # Add Driver Code Here
-def main(dX):
+def main():
     # Initialize Variables
     detector = generate_aruco_detector(cv2.aruco.DICT_7X7_100)
 
@@ -99,7 +62,7 @@ def main(dX):
             sleep(1.0)
 
         # Run detection algorithm
-        pdf.generateSplatterAnalysis(ratio, aruco_id, frame)
+        pdf.generateSplatterAnalysis(ratio, aruco_id, frame, crop=False)
 
 
         repeat = input("Run again? (y/n) >>> ").lower()
@@ -117,8 +80,5 @@ def main(dX):
 
 
 if __name__ == "__main__":
-    dX = 800
-
-    main(dX)
-    # reset(dX)
+    main()
     quit()

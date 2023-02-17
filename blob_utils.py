@@ -35,7 +35,7 @@ default_categories = (
         "size": 10.0,
         "name": "Low Velocity",
         "causes": (
-            "Splashes",
+            "Slashes",
             "Swipes",
             "Running",
             "Idle Blood Loss"
@@ -276,7 +276,6 @@ def create_blob_display(img: NDArray, blobs: Tuple, bg_color: COLOR = (0, 0, 0),
     else:
         results = lerped_img
 
-    print(f"Blob Count: {len(blobs)}")
     results = cv2.putText(results, str(len(blobs)), (0, 0), cv2.FONT_HERSHEY_SIMPLEX,
                      50, (255, 255, 255), 2, cv2.LINE_AA)
 

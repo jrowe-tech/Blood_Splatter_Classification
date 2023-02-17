@@ -270,6 +270,14 @@ class PDF(Canvas):
         causes = []
         groups = []
 
+        cause_filter = 0.2
+
+        # Filter Blobs Here:
+        if len(high_blobs) / len(blobs) < cause_filter:
+            high_blobs = None
+        if len(medium_blobs) / len(blobs) < cause_filter:
+            medium_blobs = None
+
         if low_blobs:
             causes += default_categories[2]["causes"]
             groups.append("Low Velocity")
