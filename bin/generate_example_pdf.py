@@ -5,7 +5,12 @@ import cv2
 
 
 def generate_pdf_example():
-    pdf = PDF(path=r'../reports/sample.pdf', logo="../static/images/logo.jpg")
+    pdf = PDF(logo=r"../static/images/logo.jpg", font_dir="../static/fonts")
+
+    # Prints Active Fonts
+    print(f"Active Fonts: ")
+    print(f"{pdf.fonts}", sep="/n")
+
 
     # Adds title page
     pdf.addLineText("Sample Report", x=310, y=pdf.adjust_y(620, 1), font_size=50)

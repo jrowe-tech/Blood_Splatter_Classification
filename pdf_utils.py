@@ -19,6 +19,7 @@ class PDF(Canvas):
     INCH = lib.units.inch
     MM = lib.units.mm
     LETTER_SIZE = lib.pagesizes.letter
+    FONT_DIR = "static/fonts"
 
     def __init__(self, **kwargs):
         self.path = kwargs.get("path", r"reports/sample.pdf")
@@ -40,10 +41,12 @@ class PDF(Canvas):
         self.current_font = "Helvetica"
         self.setFont("Helvetica", 12)
 
-        font_dir = kwargs.get("font_dir", "fonts")
+        font_dir = kwargs.get("font_dir", self.FONT_DIR)
+        print(f"FONT DIRECTORY: {font_dir}")
 
         # Grab Fonts From Fonts Folder
-        fonts = glob(font_dir + r'\*.ttf')
+        fonts = glob(font_dir + '/*.ttf')
+        print(f"Detected Fonts: {fonts}")
         for font in fonts:
             font_name = self.get_file_name(font)
             pdfmetrics.registerFont(
