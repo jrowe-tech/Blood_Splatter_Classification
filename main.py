@@ -1,19 +1,12 @@
 from blob_utils import *
-from robomaster import robot
-from robomaster import chassis
-from robomaster import camera
-from robomaster_utils import Robomaster
-import datetime
+from robomaster import robot, chassis, camera
+from tkinter import filedialog, Tk
+
+from datetime import datetime, date
 from pdf_utils import PDF
 import sys
 from time import sleep
 import cv2
-
-
-# Reset to original position
-def reset():
-    robot = Robomaster()
-    robot.move_left(dX * 1.8)
 
 
 # Add Driver Code Here
@@ -28,14 +21,13 @@ def main():
     ep_camera = ep_robot.camera
     ep_camera.start_video_stream(display=True)
 
-    # Construct PDF Report
-    path = f"reports/{input('Name of generated pdf (include extensions): ')}"
-    pdf = PDF(path=path, logo="static/images/logo.jpg")
+    # Construct PDF Object
+    pdf = PDF(logo="static/images/logo.jpg")
 
     # Ask For Credentials
     name = input("Enter your operator title >>> ")
     site = input("Enter the name of the site >>> ")
-    date = datetime.date.strftime(datetime.datetime.now(), "%m/%d/%Y")
+    date = date.strftime(datetime.now(), "%m/%d/%Y")
 
     # Construct Title Page
     pdf.createTitlePage(site, date, name)
@@ -72,6 +64,14 @@ def main():
             ep_chassis.move(y=(800 / 1000), xy_speed=0.4)
             sleep(5)
             pass
+
+    # Open File Dialog And Grab Path
+    root = Tk()
+    root.withdraw()
+    path = filedialog.asksaveasfilename(confirmoverwrite=True, defaultextension=".pdf")
+
+    if path != []:
+        pdf.path = path
 
     # Save Completed PDF (Will Be In Reports Folder)
     pdf.save()
